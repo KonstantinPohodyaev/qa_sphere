@@ -1,11 +1,14 @@
 from logging.config import fileConfig
 import sys
 from pathlib import Path
+import asyncio
 
-from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+from alembic.config import Config
 
 # Добавляем корневую директорию проекта в sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -69,9 +72,12 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     '''
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix='sqlalchemy.',
+    # Для async миграций используем синхронный движок через asyncpg
+    # Alembic работает синхронно, но мы можем использовать async движок
+    from sqlalchemy import create_engine
+    
+    connectable = create_engine(
+        settings.DATABASE_URL,
         poolclass=pool.NullPool,
     )
 

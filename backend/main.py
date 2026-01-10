@@ -6,10 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
 from api.v1.api import api_router
-from database.base import engine
+from database.base import async_engine, Base
 
 # Импорт всех моделей для создания таблиц
-from models import Base, User, Pipeline, PipelineVersion, PipelineRun  # noqa: F401
+from models import User, Pipeline, PipelineVersion, PipelineRun  # noqa: F401
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -33,8 +33,15 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.on_event('startup')
 async def startup_event():
-    '''Создание таблиц при запуске приложения'''
-    Base.metadata.create_all(bind=engine)
+    '''Создание таблиц при запуске приложения (асинхронно)'''
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+@app.on_event('shutdown')
+async def shutdown_event():
+    '''Закрытие соединений при остановке приложения'''
+    await async_engine.dispose()
 
 
 @app.get('/')

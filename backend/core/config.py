@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         '''Формирование URL для подключения к PostgreSQL'''
-        return f'postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}'
+        return f'postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}'
     
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = ['http://localhost:3000', 'http://localhost:8000']

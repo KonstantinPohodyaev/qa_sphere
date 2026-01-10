@@ -1,8 +1,10 @@
 '''
-Пример сервиса для работы с Example
+Пример сервиса для работы с Example (асинхронный)
 '''
-from typing import List, Optional
-from sqlalchemy.orm import Session
+from typing import Optional
+from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from models.example import Example
 from schemas.example import ExampleCreate, ExampleUpdate
@@ -12,28 +14,42 @@ class ExampleService:
     '''Сервис для работы с Example'''
     
     @staticmethod
-    def get_by_id(db: Session, example_id: int) -> Optional[Example]:
+    async def get_by_id(db: AsyncSession, example_id: UUID) -> Optional[Example]:
         '''Получить Example по ID'''
-        return db.query(Example).filter(Example.id == example_id).first()
+        result = await db.execute(
+            select(Example).where(Example.id == example_id)
+        )
+        return result.scalar_one_or_none()
     
     @staticmethod
-    def get_all(db: Session, skip: int = 0, limit: int = 100) -> List[Example]:
+    async def get_all(
+        db: AsyncSession,
+        skip: int = 0,
+        limit: int = 100
+    ) -> list[Example]:
         '''Получить все Example'''
-        return db.query(Example).offset(skip).limit(limit).all()
+        result = await db.execute(
+            select(Example).offset(skip).limit(limit)
+        )
+        return list(result.scalars().all())
     
     @staticmethod
-    def create(db: Session, example: ExampleCreate) -> Example:
+    async def create(db: AsyncSession, example: ExampleCreate) -> Example:
         '''Создать новый Example'''
         db_example = Example(**example.model_dump())
         db.add(db_example)
-        db.commit()
-        db.refresh(db_example)
+        await db.commit()
+        await db.refresh(db_example)
         return db_example
     
     @staticmethod
-    def update(db: Session, example_id: int, example: ExampleUpdate) -> Optional[Example]:
+    async def update(
+        db: AsyncSession,
+        example_id: UUID,
+        example: ExampleUpdate
+    ) -> Optional[Example]:
         '''Обновить Example'''
-        db_example = ExampleService.get_by_id(db, example_id)
+        db_example = await ExampleService.get_by_id(db, example_id)
         if not db_example:
             return None
         
@@ -41,17 +57,17 @@ class ExampleService:
         for field, value in update_data.items():
             setattr(db_example, field, value)
         
-        db.commit()
-        db.refresh(db_example)
+        await db.commit()
+        await db.refresh(db_example)
         return db_example
     
     @staticmethod
-    def delete(db: Session, example_id: int) -> bool:
+    async def delete(db: AsyncSession, example_id: UUID) -> bool:
         '''Удалить Example'''
-        db_example = ExampleService.get_by_id(db, example_id)
+        db_example = await ExampleService.get_by_id(db, example_id)
         if not db_example:
             return False
         
-        db.delete(db_example)
-        db.commit()
+        await db.delete(db_example)
+        await db.commit()
         return True
