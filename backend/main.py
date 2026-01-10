@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
+from core.initial_data import create_first_superuser
 from api.v1.api import api_router
 from database.base import async_engine, Base
 
@@ -33,9 +34,13 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.on_event('startup')
 async def startup_event():
-    '''Создание таблиц при запуске приложения (асинхронно)'''
+    '''Создание таблиц и начальных данных при запуске приложения'''
+    # Создание таблиц
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Создание первого суперпользователя
+    await create_first_superuser()
 
 
 @app.on_event('shutdown')

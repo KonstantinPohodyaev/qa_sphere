@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     ALGORITHM: str = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
+    # Первый суперпользователь (создается при запуске)
+    FIRST_SUPERUSER_EMAIL: str | None = None
+    FIRST_SUPERUSER_PASSWORD: str | None = None
+    
+    # Логирование SQL запросов (для разработки)
+    SQL_ECHO: bool = False
+    
     class Config:
         env_file = '.env'
         case_sensitive = True

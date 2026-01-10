@@ -51,7 +51,7 @@ class RunArtifactInDB(RunArtifactBase):
         from_attributes = True
 
 
-class RunArtifact(RunArtifactInDB):
+class RunArtifactRead(RunArtifactInDB):
     '''Схема RunArtifact для ответа API'''
     
     class Config:

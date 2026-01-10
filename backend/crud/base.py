@@ -25,12 +25,21 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self,
         session: AsyncSession,
         offset: int = 0,
-        limit: int = 100
+        limit: int = 100,
+        **filters
     ) -> list[ModelType]:
-        '''Получить все модели'''
-        return await session.execute(
-            select(self.model).offset(offset).limit(limit)
-        ).scalars().all()
+        '''Получить все модели с опциональными фильтрами'''
+        query = select(self.model)
+
+        # Применяем фильтры
+        for key, value in filters.items():
+            if hasattr(self.model, key) and value is not None:
+                query = query.where(getattr(self.model, key) == value)
+        
+        result = await session.execute(
+            query.offset(offset).limit(limit)
+        )
+        return list(result.scalars().all())
 
     async def get_by_id(
         self,
@@ -80,8 +89,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         '''Обновить модель'''
         try:
             # Поддержка как Pydantic схем, так и dict
-            db_object = update_schema.model_dump(exclude_unset=True)
-            for field, value in db_object.items():
+            update_data = update_schema.model_dump(exclude_unset=True)
+            for field, value in update_data.items():
                 setattr(db_object, field, value)
             session.add(db_object)
             if commit:

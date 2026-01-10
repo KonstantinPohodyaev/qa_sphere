@@ -1,11 +1,9 @@
 from logging.config import fileConfig
 import sys
 from pathlib import Path
-import asyncio
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from alembic.config import Config
@@ -23,8 +21,12 @@ from models import BaseModel, User, Pipeline, PipelineVersion, PipelineRun  # no
 # access to the values within the .ini file in use.
 config = context.config
 
+# Преобразуем async URL в sync URL для Alembic
+# postgresql+asyncpg:// -> postgresql:// (SQLAlchemy автоматически выберет доступный синхронный драйвер)
+sync_database_url = settings.DATABASE_URL.replace('+asyncpg', '')
+
 # Переопределяем sqlalchemy.url из настроек приложения
-config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
+config.set_main_option('sqlalchemy.url', sync_database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -53,7 +55,7 @@ def run_migrations_offline() -> None:
     script output.
 
     '''
-    url = config.get_main_option('sqlalchemy.url')
+    url = sync_database_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -72,12 +74,11 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     '''
-    # Для async миграций используем синхронный движок через asyncpg
-    # Alembic работает синхронно, но мы можем использовать async движок
+    # Alembic работает синхронно, поэтому используем синхронный движок
     from sqlalchemy import create_engine
     
     connectable = create_engine(
-        settings.DATABASE_URL,
+        sync_database_url,
         poolclass=pool.NullPool,
     )
 

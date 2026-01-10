@@ -46,7 +46,7 @@ class RunParamValueInDB(RunParamValueBase):
         from_attributes = True
 
 
-class RunParamValue(RunParamValueInDB):
+class RunParamValueRead(RunParamValueInDB):
     '''Схема RunParamValue для ответа API'''
     
     class Config:

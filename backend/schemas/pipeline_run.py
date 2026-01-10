@@ -53,7 +53,7 @@ class PipelineRunInDB(PipelineRunBase):
         from_attributes = True
 
 
-class PipelineRun(PipelineRunInDB):
+class PipelineRunRead(PipelineRunInDB):
     '''Схема PipelineRun для ответа API'''
     
     class Config:

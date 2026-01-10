@@ -55,6 +55,6 @@ class PipelineVersionInDB(PipelineVersionBase):
         from_attributes = True
 
 
-class PipelineVersion(PipelineVersionInDB):
+class PipelineVersionRead(PipelineVersionInDB):
     '''Схема PipelineVersion для ответа API'''
     pass

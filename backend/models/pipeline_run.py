@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from models.pipeline import Pipeline
     from models.pipeline_version import PipelineVersion
     from models.user import User
+    from models.run_artifact import RunArtifact
 
 
 class PipelineRunStatus(PyEnum):
@@ -67,3 +68,4 @@ class PipelineRun(BaseModel):
     pipeline: Mapped['Pipeline'] = relationship('Pipeline', back_populates='runs')
     pipeline_version: Mapped['PipelineVersion'] = relationship('PipelineVersion', back_populates='runs')
     user: Mapped[Optional['User']] = relationship('User', back_populates='pipeline_runs')
+    artifacts: Mapped[list['RunArtifact']] = relationship('RunArtifact', back_populates='pipeline_run')

@@ -6,6 +6,8 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
+from schemas.user import UserRead
+
 
 class PipelineBase(BaseModel):
     '''Базовая схема для Pipeline'''
@@ -19,7 +21,7 @@ class PipelineBase(BaseModel):
 
 class PipelineCreate(PipelineBase):
     '''Схема для создания Pipeline'''
-    pass
+    user_id: uuid.UUID
 
 
 class PipelineUpdate(BaseModel):
@@ -29,18 +31,27 @@ class PipelineUpdate(BaseModel):
     description: Optional[str] = None
     executor_type: Optional[str] = None
     external_id: Optional[str] = None
+    user_id: Optional[uuid.UUID] = None
     is_active: Optional[bool] = None
 
 
 class PipelineInDB(PipelineBase):
     '''Схема Pipeline из базы данных'''
     id: uuid.UUID
+    user_id: uuid.UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
     
     model_config = ConfigDict(from_attributes=True)
 
 
-class Pipeline(PipelineInDB):
+class PipelineWithUser(PipelineInDB):
+    '''Схема Pipeline с информацией о пользователе'''
+    user: UserRead
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PipelineRead(PipelineWithUser):
     '''Схема Pipeline для ответа API'''
     pass

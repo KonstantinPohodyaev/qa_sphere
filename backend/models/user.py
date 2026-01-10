@@ -12,6 +12,7 @@ from database.annotations import GUID
 
 if TYPE_CHECKING:
     from models.pipeline_run import PipelineRun
+    from models.pipeline import Pipeline
 
 
 class UserRole(StrEnum):
@@ -40,6 +41,11 @@ class User(BaseModel):
     )
     
     # Relationships
+    pipelines: Mapped[List['Pipeline']] = relationship(
+        'Pipeline',
+        back_populates='user',
+        cascade='all, delete-orphan'
+    )
     pipeline_runs: Mapped[List['PipelineRun']] = relationship(
         'PipelineRun',
         back_populates='user'

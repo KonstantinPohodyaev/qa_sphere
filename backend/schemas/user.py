@@ -37,7 +37,7 @@ class UserInDB(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class User(UserBase):
+class UserRead(UserBase):
     '''Схема User для ответа API (без пароля)'''
     id: uuid.UUID
     created_at: datetime
