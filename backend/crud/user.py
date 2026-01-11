@@ -1,3 +1,4 @@
+import uuid
 from crud.base import CRUDBase
 from models.user import User, UserRole
 from schemas.user import UserCreate, UserUpdate
@@ -18,6 +19,17 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         '''Получить пользователя по email'''
         result = await session.execute(
             select(self.model).where(self.model.email == email)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_current_user(
+        self,
+        session: AsyncSession,
+        user_id: uuid.UUID
+    ) -> Optional[User]:
+        '''Получить текущего пользователя по ID'''
+        result = await session.execute(
+            select(self.model).where(self.model.id == user_id)
         )
         return result.scalar_one_or_none()
     

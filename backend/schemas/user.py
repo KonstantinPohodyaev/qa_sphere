@@ -43,3 +43,20 @@ class UserRead(UserBase):
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserLogin(BaseModel):
+    '''Схема для логина пользователя'''
+    email: EmailStr
+    password: str
+
+
+class Token(BaseModel):
+    '''Схема для JWT токена'''
+    access_token: str
+    token_type: str = "bearer"
+
+
+class TokenData(BaseModel):
+    '''Данные из JWT токена'''
+    user_id: Optional[uuid.UUID] = None

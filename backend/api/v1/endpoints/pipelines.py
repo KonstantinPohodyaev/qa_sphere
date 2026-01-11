@@ -29,10 +29,11 @@ router = APIRouter()
 async def get_all_pipelines(
     offset: int = 0,
     limit: int = 100,
+    is_active: bool = True,
     session: AsyncSession = Depends(get_async_session)
 ):
     '''Получить список всех пайплайнов'''
-    return await pipeline_crud.get_all_pipelines(session, offset, limit)
+    return await pipeline_crud.get_all_pipelines(session, offset, limit, is_active)
 
 
 @router.get(

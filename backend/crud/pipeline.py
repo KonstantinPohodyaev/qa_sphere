@@ -2,7 +2,7 @@
 CRUD операции для Pipeline
 '''
 import uuid
-from typing import Optional
+from typing import Optional, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -19,12 +19,15 @@ class CRUDPipeline(CRUDBase[Pipeline, PipelineCreate, PipelineUpdate]):
         self,
         session: AsyncSession,
         offset: int = 0,
-        limit: int = 100
+        limit: int = 100,
+        is_active: bool = True,
+        order_by: str = 'created_at',
     ) -> list[Pipeline]:
         '''Получить все пайплайны'''
         return (
             await session.execute(
                 select(Pipeline)
+                .where(Pipeline.is_active == is_active)
                 .offset(offset)
                 .limit(limit)
                 .options(selectinload(Pipeline.user))
