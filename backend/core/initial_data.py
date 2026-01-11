@@ -40,7 +40,7 @@ async def create_user(
         # Используем переданную сессию
         existing_user = await user_crud.get_by_email(session, email)
         if existing_user:
-            raise UserAlreadyExists(f'User with email {email} already exists')
+            raise UserAlreadyExists(f'Пользователь с  email {email} уже есть')
         
         role = UserRole.ADMIN if is_superuser else UserRole.USER
         try:
@@ -57,13 +57,13 @@ async def create_user(
             return user
         except IntegrityError:
             # Обработка race condition - пользователь мог быть создан между проверкой и созданием
-            raise UserAlreadyExists(f'User with email {email} already exists')
+            raise UserAlreadyExists(f'Пользователь с  email {email} уже есть')
     else:
         # Создаем новую сессию
         async with get_async_session_context() as session:
             existing_user = await user_crud.get_by_email(session, email)
             if existing_user:
-                raise UserAlreadyExists(f'User with email {email} already exists')
+                raise UserAlreadyExists(f'Пользователь с  email {email} уже есть')
             
             role = UserRole.ADMIN if is_superuser else UserRole.USER
             try:
@@ -80,7 +80,7 @@ async def create_user(
                 return user
             except IntegrityError:
                 # Обработка race condition
-                raise UserAlreadyExists(f'User with email {email} already exists')
+                raise UserAlreadyExists(f'Пользователь с  email {email} уже есть')
 
 
 async def create_first_superuser():

@@ -22,11 +22,27 @@ router = APIRouter()
 @router.get(
     '/',
     status_code=status.HTTP_200_OK,
+    response_model=list[PipelineRead],
+    summary='Получить список всех пайплайнов',
+    description='Получить список всех пайплайнов',
+)
+async def get_all_pipelines(
+    offset: int = 0,
+    limit: int = 100,
+    session: AsyncSession = Depends(get_async_session)
+):
+    '''Получить список всех пайплайнов'''
+    return await pipeline_crud.get_all_pipelines(session, offset, limit)
+
+
+@router.get(
+    '/user',
+    status_code=status.HTTP_200_OK,
     response_model=List[PipelineRead],
-    summary='Получить список пайплайнов',
+    summary='Получить список пайплайнов текущего пользователя',
     description='Получить список пайплайнов текущего пользователя',
 )
-async def get_pipelines(
+async def get_users_pipelines(
     user_id: uuid.UUID,  # TODO: Получать из токена/сессии
     offset: int = 0,
     limit: int = 100,
@@ -43,10 +59,12 @@ async def get_pipelines(
     # Загружаем связанные данные пользователя для всех пайплайнов
     if pipelines_list:
         pipeline_ids = [p.id for p in pipelines_list]
-        return await session.execute(
-            select(Pipeline)
-            .where(Pipeline.id.in_(pipeline_ids))
-            .options(selectinload(Pipeline.user))
+        return (
+            await session.execute(
+                select(Pipeline)
+                .where(Pipeline.id.in_(pipeline_ids))
+                .options(selectinload(Pipeline.user))
+            )
         ).scalars().all()
     return []
 
@@ -56,30 +74,29 @@ async def get_pipelines(
     status_code=status.HTTP_200_OK,
     response_model=PipelineRead,
     summary='Получить пайплайн по ID',
-    description='Получить пайплайн по ID с проверкой владельца',
+    description='Получить пайплайн по ID',
 )
 async def get_pipeline(
     pipeline_id: uuid.UUID,
-    user_id: uuid.UUID,  # TODO: Получать из токена/сессии
     session: AsyncSession = Depends(get_async_session)
 ):
     '''Получить пайплайн по ID'''
-    db_pipeline = await pipeline_crud.get_by_id_with_user(
+    db_pipeline = await pipeline_crud.get_by_id(
         session,
-        pipeline_id=pipeline_id,
-        user_id=user_id
+        pipeline_id
     )
     if not db_pipeline:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Pipeline not found or access denied'
         )
-    return await s(ession.execute(
-        select(Pipeline)
-        .where(Pipeline.id == pipeline_id)
-        .where(Pipeline.user_id == user_id)
-        .options(selectinload(Pipeline.user))
-    )).scalar_one_or_none()
+    return (
+        await session.execute(
+            select(Pipeline)
+            .where(Pipeline.id == pipeline_id)
+            .options(selectinload(Pipeline.user))
+        )
+    ).scalar_one_or_none()
 
 
 @router.post(
@@ -114,74 +131,88 @@ async def create_pipeline(
         user_id=user_id
     )
     await session.refresh(db_pipeline, ['user'])
-    return (await session.execute(
-        select(Pipeline)
-        .where(Pipeline.id == db_pipeline.id)
-        .options(selectinload(Pipeline.user))
-    )).scalar_one_or_none()
+    return (
+        await session.execute(
+            select(Pipeline)
+            .where(Pipeline.id == db_pipeline.id)
+            .options(selectinload(Pipeline.user))
+        )
+    ).scalar_one_or_none()
 
 
-@router.put(
+@router.patch(
     '/{pipeline_id}',
     status_code=status.HTTP_200_OK,
     response_model=PipelineRead,
-    summary='Обновить пайплайн',
-    description='Обновить пайплайн с проверкой владельца',
+    summary='Частично обновить пайплайн',
+    description='Частично обновить пайплайн по ID (можно передать только изменяемые поля)',
 )
 async def update_pipeline(
     pipeline_id: uuid.UUID,
     pipeline_data: PipelineUpdate,
-    user_id: uuid.UUID,  # TODO: Получать из токена/сессии
     session: AsyncSession = Depends(get_async_session)
 ):
-    '''Обновить пайплайн'''
-    # Если пытаются изменить user_id, проверяем права
-    if pipeline_data.user_id is not None and pipeline_data.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Cannot transfer pipeline to another user'
-        )
-    
-    db_pipeline = await pipeline_crud.update_for_user(
-        session,
-        pipeline_id=pipeline_id,
-        user_id=user_id,
-        update_schema=pipeline_data
-    )
+    '''Частично обновить пайплайн'''
+    db_pipeline = await pipeline_crud.get_by_id(session, pipeline_id)
     if not db_pipeline:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail='Pipeline not found or access denied'
+            detail='Pipeline not found'
         )
+    
+    # Валидация уникальности code, если он обновляется
+    if pipeline_data.code is not None and pipeline_data.code != db_pipeline.code:
+        existing_pipeline = await pipeline_crud.get_by_code(session, pipeline_data.code)
+        if existing_pipeline and existing_pipeline.id != pipeline_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f'Пайплайн с кодом = {pipeline_data.code} уже существует'
+            )
+    
+    # Валидация уникальности name, если он обновляется
+    if pipeline_data.name is not None and pipeline_data.name != db_pipeline.name:
+        existing_pipeline = await pipeline_crud.get_by_name(session, pipeline_data.name)
+        if existing_pipeline and existing_pipeline.id != pipeline_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f'Пайплайн с названием = {pipeline_data.name} уже существует'
+            )
+    
+    # Обновляем только переданные поля (exclude_unset=True уже используется в CRUDBase)
+    db_pipeline = await pipeline_crud.update(
+        session,
+        db_pipeline,
+        pipeline_data,
+        commit=True
+    )
     await session.refresh(db_pipeline, ['user'])
-    return await (session.execute(
-        select(Pipeline)
-        .where(Pipeline.id == pipeline_id)
-        .where(Pipeline.user_id == user_id)
-        .options(selectinload(Pipeline.user))
-    )).scalar_one_or_none()
+    return (
+        await session.execute(
+            select(Pipeline)
+            .where(Pipeline.id == pipeline_id)
+            .options(selectinload(Pipeline.user))
+        )
+    ).scalar_one_or_none()
 
 
 @router.delete(
     '/{pipeline_id}',
     status_code=status.HTTP_204_NO_CONTENT,
     summary='Удалить пайплайн',
-    description='Удалить пайплайн с проверкой владельца',
+    description='Удалить пайплайн по ID',
 )
 async def delete_pipeline(
     pipeline_id: uuid.UUID,
-    user_id: uuid.UUID,  # TODO: Получать из токена/сессии
     session: AsyncSession = Depends(get_async_session)
 ):
     '''Удалить пайплайн'''
-    success = await pipeline_crud.delete_for_user(
+    success = await pipeline_crud.delete_by_id(
         session,
-        pipeline_id=pipeline_id,
-        user_id=user_id
+        pipeline_id
     )
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail='Pipeline not found or access denied'
+            detail='Pipeline not found'
         )
     return None

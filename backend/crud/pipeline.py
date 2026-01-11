@@ -14,6 +14,22 @@ from schemas.pipeline import PipelineCreate, PipelineUpdate
 
 class CRUDPipeline(CRUDBase[Pipeline, PipelineCreate, PipelineUpdate]):
     '''CRUD операции для Pipeline с учетом user_id'''
+
+    async def get_all_pipelines(
+        self,
+        session: AsyncSession,
+        offset: int = 0,
+        limit: int = 100
+    ) -> list[Pipeline]:
+        '''Получить все пайплайны'''
+        return (
+            await session.execute(
+                select(Pipeline)
+                .offset(offset)
+                .limit(limit)
+                .options(selectinload(Pipeline.user))
+            )
+        ).scalars().all()
     
     async def get_by_user(
         self,
@@ -51,20 +67,6 @@ class CRUDPipeline(CRUDBase[Pipeline, PipelineCreate, PipelineUpdate]):
             )
         ).scalar_one_or_none()
 
-    async def get_by_id_with_user(
-        self,
-        session: AsyncSession,
-        pipeline_id: uuid.UUID,
-        user_id: uuid.UUID
-    ) -> Optional[Pipeline]:
-        '''Получить пайплайн по ID с проверкой владельца'''
-        result = await session.execute(
-            select(Pipeline)
-            .where(Pipeline.id == pipeline_id)
-            .where(Pipeline.user_id == user_id)
-            .options(selectinload(Pipeline.user))
-        )
-        return result.scalar_one_or_none()
     
     async def create_for_user(
         self,

@@ -7,6 +7,7 @@ from typing import Generic, TypeVar, Type, Optional
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from models.base import BaseModel
@@ -47,10 +48,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         id: uuid.UUID
     ) -> Optional[ModelType]:
         '''Получить модель по ID'''
-        result = await session.execute(
-            select(self.model).where(self.model.id == id)
-        )
-        return result.scalar_one_or_none()
+
+        return (
+            await session.execute(
+                select(self.model).where(self.model.id == id)
+            )
+        ).scalar_one_or_none()
 
     async def create(
         self,
