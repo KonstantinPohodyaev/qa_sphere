@@ -13,8 +13,8 @@ from crud.pipeline import pipeline_crud
 from models.pipeline import Pipeline
 from sqlalchemy import select
 
-from api.validators.user import validate_user_id
-from api.validators.pipeline import validate_pipeline_code, validate_pipeline_name
+from validators.user import validate_user_id
+from validators.pipeline import validate_pipeline_code, validate_pipeline_name
 
 router = APIRouter()
 
@@ -57,7 +57,6 @@ async def get_users_pipelines(
         limit=limit
     )
     
-    # Загружаем связанные данные пользователя для всех пайплайнов
     if pipelines_list:
         pipeline_ids = [p.id for p in pipelines_list]
         return (

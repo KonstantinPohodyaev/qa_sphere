@@ -1,3 +1,6 @@
+'''
+Валидаторы для Pipeline
+'''
 from crud.pipeline import pipeline_crud
 from database.base import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -77,7 +77,7 @@ def get_user_id_from_token(token: str) -> Optional[uuid.UUID]:
     if payload is None:
         return None
 
-    user_id_str: str = payload.get("sub")
+    user_id_str: str = payload.get('sub')
     if user_id_str is None:
         return None
 
