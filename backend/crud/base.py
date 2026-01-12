@@ -32,7 +32,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         '''Получить все модели с опциональными фильтрами'''
         query = select(self.model)
 
-        # Применяем фильтры
         for key, value in filters.items():
             if hasattr(self.model, key) and value is not None:
                 query = query.where(getattr(self.model, key) == value)
