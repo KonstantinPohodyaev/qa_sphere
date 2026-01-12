@@ -8,7 +8,7 @@ from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database.annotations import GUID
+from database.annotations import GUID, null_text
 from models.base import BaseModel
 
 if TYPE_CHECKING:
@@ -33,7 +33,7 @@ class PipelineVersion(BaseModel):
     )
     version: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     schema: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[null_text]
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     
     # Relationships

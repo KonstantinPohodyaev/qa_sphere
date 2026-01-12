@@ -3,9 +3,9 @@
 '''
 import uuid
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Optional
 
-from sqlalchemy import String
+from sqlalchemy import String, Text
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.types import CHAR, TypeDecorator
 
@@ -46,3 +46,4 @@ class GUID(TypeDecorator):
 
 not_null_datetime = Annotated[datetime, mapped_column(nullable=False)]
 not_null_unique_str = Annotated[str, mapped_column(String(255), nullable=False, unique=True)]
+null_text = Annotated[Optional[str], mapped_column(Text, nullable=True)]

@@ -8,7 +8,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, String, Table, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import CHAR, TypeDecorator
 
-from database.annotations import GUID
+from database.annotations import GUID, null_text
 from database.base import Base
 from models.base import BaseModel
 
@@ -36,7 +36,7 @@ class Pipeline(BaseModel):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     code: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[null_text]
     executor_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     external_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
