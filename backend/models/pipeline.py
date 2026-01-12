@@ -2,18 +2,28 @@
 Модель Pipeline
 '''
 import uuid
-from typing import Optional, TYPE_CHECKING, List
-from sqlalchemy import String, Boolean, Text, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.types import TypeDecorator, CHAR
+from typing import TYPE_CHECKING, List, Optional
 
-from models.base import BaseModel
+from sqlalchemy import Boolean, Column, ForeignKey, String, Table, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import CHAR, TypeDecorator
+
 from database.annotations import GUID
+from database.base import Base
+from models.base import BaseModel
 
 if TYPE_CHECKING:
-    from models.pipeline_version import PipelineVersion
     from models.pipeline_run import PipelineRun
+    from models.pipeline_version import PipelineVersion
     from models.user import User
+
+# Ассоциативная таблица для связи многие-ко-многим между Pipeline и User
+pipeline_owners = Table(
+    'pipeline_owners',
+    Base.metadata,
+    Column('pipeline_id', GUID(), ForeignKey('pipelines.id', ondelete='CASCADE'), primary_key=True),
+    Column('user_id', GUID(), ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
+)
 
 class Pipeline(BaseModel):
     '''Модель Pipeline'''
@@ -29,12 +39,6 @@ class Pipeline(BaseModel):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     executor_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     external_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        GUID(),
-        ForeignKey('users.id', ondelete='CASCADE'),
-        nullable=False,
-        index=True
-    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     
     # Relationships
@@ -48,4 +52,8 @@ class Pipeline(BaseModel):
         back_populates='pipeline',
         cascade='all, delete-orphan'
     )
-    user: Mapped['User'] = relationship('User', back_populates='pipelines')
+    owners: Mapped[List['User']] = relationship(
+        'User',
+        secondary=pipeline_owners,
+        back_populates='pipelines'
+    )

@@ -2,11 +2,12 @@
 Базовые модели
 '''
 from sqlalchemy import DateTime
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from database.base import Base
+
 from database.annotations import not_null_datetime
+from database.base import Base
 
 
 class BaseModel(Base):

@@ -3,8 +3,9 @@
 '''
 from typing import Optional
 from uuid import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.example import Example
 from schemas.example import ExampleCreate, ExampleUpdate

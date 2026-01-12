@@ -3,18 +3,19 @@
 '''
 import uuid
 from typing import List
-from fastapi import APIRouter, status, Depends, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from database.base import get_async_session
-from schemas.pipeline import PipelineRead, PipelineCreate, PipelineUpdate
 from crud.pipeline import pipeline_crud
+from database.base import get_async_session
 from models.pipeline import Pipeline
-from sqlalchemy import select
-
+from schemas.pipeline import PipelineCreate, PipelineRead, PipelineUpdate
+from validators.pipeline import (validate_pipeline_code, validate_pipeline_id,
+                                 validate_pipeline_name)
 from validators.user import validate_user_id
-from validators.pipeline import validate_pipeline_code, validate_pipeline_name
 
 router = APIRouter()
 
@@ -57,16 +58,7 @@ async def get_users_pipelines(
         limit=limit
     )
     
-    if pipelines_list:
-        pipeline_ids = [p.id for p in pipelines_list]
-        return (
-            await session.execute(
-                select(Pipeline)
-                .where(Pipeline.id.in_(pipeline_ids))
-                .options(selectinload(Pipeline.user))
-            )
-        ).scalars().all()
-    return []
+    return pipelines_list
 
 
 @router.get(
@@ -94,7 +86,7 @@ async def get_pipeline(
         await session.execute(
             select(Pipeline)
             .where(Pipeline.id == pipeline_id)
-            .options(selectinload(Pipeline.user))
+            .options(selectinload(Pipeline.owners))
         )
     ).scalar_one_or_none()
 
@@ -118,24 +110,16 @@ async def create_pipeline(
     await validate_pipeline_code(pipeline_data.code, session)
     await validate_pipeline_name(pipeline_data.name, session)
 
-    # Убеждаемся, что user_id в схеме соответствует текущему пользователю
-    if pipeline_data.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Cannot create pipeline for another user'
-        )
-
     db_pipeline = await pipeline_crud.create_for_user(
         session,
         create_schema=pipeline_data,
         user_id=user_id
     )
-    await session.refresh(db_pipeline, ['user'])
     return (
         await session.execute(
             select(Pipeline)
             .where(Pipeline.id == db_pipeline.id)
-            .options(selectinload(Pipeline.user))
+            .options(selectinload(Pipeline.owners))
         )
     ).scalar_one_or_none()
 
@@ -153,51 +137,23 @@ async def update_pipeline(
     session: AsyncSession = Depends(get_async_session)
 ):
     '''Частично обновить пайплайн'''
-    db_pipeline = await pipeline_crud.get_by_id(session, pipeline_id)
-    if not db_pipeline:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Pipeline not found'
-        )
+
+    db_pipeline = await validate_pipeline_id(pipeline_id, session)
+    await validate_pipeline_code(pipeline_data.code, session)
+    await validate_pipeline_name(pipeline_data.name, session)
     
-    # Валидация уникальности code, если он обновляется
-    if pipeline_data.code is not None and pipeline_data.code != db_pipeline.code:
-        existing_pipeline = await pipeline_crud.get_by_code(session, pipeline_data.code)
-        if existing_pipeline and existing_pipeline.id != pipeline_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f'Пайплайн с кодом = {pipeline_data.code} уже существует'
-            )
-    
-    # Валидация уникальности name, если он обновляется
-    if pipeline_data.name is not None and pipeline_data.name != db_pipeline.name:
-        existing_pipeline = await pipeline_crud.get_by_name(session, pipeline_data.name)
-        if existing_pipeline and existing_pipeline.id != pipeline_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f'Пайплайн с названием = {pipeline_data.name} уже существует'
-            )
-    
-    # Обновляем только переданные поля (exclude_unset=True уже используется в CRUDBase)
     db_pipeline = await pipeline_crud.update(
         session,
         db_pipeline,
         pipeline_data,
         commit=True
     )
-    await session.refresh(db_pipeline, ['user'])
-    return (
-        await session.execute(
-            select(Pipeline)
-            .where(Pipeline.id == pipeline_id)
-            .options(selectinload(Pipeline.user))
-        )
-    ).scalar_one_or_none()
+    return await pipeline_crud.get_by_id(session, pipeline_id)
 
 
 @router.delete(
     '/{pipeline_id}',
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=status.HTTP_200_OK,
     summary='Удалить пайплайн',
     description='Удалить пайплайн по ID',
 )
@@ -206,13 +162,9 @@ async def delete_pipeline(
     session: AsyncSession = Depends(get_async_session)
 ):
     '''Удалить пайплайн'''
-    success = await pipeline_crud.delete_by_id(
+
+    await validate_pipeline_id(pipeline_id, session)
+    return await pipeline_crud.delete_by_id(
         session,
         pipeline_id
     )
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Pipeline not found'
-        )
-    return None

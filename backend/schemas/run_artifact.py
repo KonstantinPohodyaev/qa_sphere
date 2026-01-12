@@ -4,6 +4,7 @@ Pydantic схемы для RunArtifact
 import uuid
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel
 
 from models.run_artifact import TypeEnum

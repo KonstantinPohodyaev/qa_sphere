@@ -4,7 +4,9 @@ Pydantic схемы для User
 import uuid
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, EmailStr
+
 from models.user import UserRole
 
 
@@ -26,14 +28,27 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     is_active: Optional[bool] = None
     role: Optional[UserRole] = None
+    pipelines: Optional[list[dict]] = None
+
+
+class UserPipelinesRead(BaseModel):
+    '''Схема для списка пайплайнов пользователя'''
+    id: uuid.UUID
+    name: str
+    code: str
+    description: Optional[str] = None
+    executor_type: str
+    external_id: Optional[str] = None
+    is_active: bool = True
 
 
 class UserInDB(UserBase):
     '''Схема User из базы данных'''
-    id: uuid.UUID
+    id: uuid.UUID | str
     password_hash: str
     created_at: datetime
-    
+    updated_at: Optional[datetime] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -41,7 +56,8 @@ class UserRead(UserBase):
     '''Схема User для ответа API (без пароля)'''
     id: uuid.UUID
     created_at: datetime
-    
+    pipelines: Optional[list[UserPipelinesRead]] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 

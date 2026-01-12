@@ -4,13 +4,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.v1.api import api_router
 from core.config import settings
 from core.initial_data import create_first_superuser
-from api.v1.api import api_router
-from database.base import async_engine, Base
-
+from database.base import Base, async_engine
 # Импорт всех моделей для создания таблиц
-from models import User, Pipeline, PipelineVersion, PipelineRun  # noqa: F401
+from models import Pipeline, PipelineRun, PipelineVersion, User  # noqa: F401
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

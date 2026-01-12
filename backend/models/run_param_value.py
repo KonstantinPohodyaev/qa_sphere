@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING
 import uuid
+from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base import BaseModel
 from database.annotations import GUID, not_null_unique_str
+from models.base import BaseModel
 
 if TYPE_CHECKING:
     from models.pipeline_run import PipelineRun

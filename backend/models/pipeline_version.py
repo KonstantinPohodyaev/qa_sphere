@@ -2,14 +2,14 @@
 Модель PipelineVersion
 '''
 import uuid
-from typing import Optional, TYPE_CHECKING
-from sqlalchemy import String, Boolean, Text, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING, Optional
+
+from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base import BaseModel
 from database.annotations import GUID
-
+from models.base import BaseModel
 
 if TYPE_CHECKING:
     from models.pipeline import Pipeline

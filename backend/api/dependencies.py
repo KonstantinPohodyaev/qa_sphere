@@ -2,21 +2,17 @@
 Зависимости для API (dependencies)
 '''
 import uuid
-from typing import Optional
-from fastapi import HTTPException, status, Depends
+
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.base import get_async_session
-from crud.user import user_crud
 from core.security import get_user_id_from_token
-from core.config import settings
+from crud.user import user_crud
+from database.base import get_async_session
 from models.user import User
 
-# OAuth2 схема для получения токена из заголовка Authorization
-# tokenUrl используется для Swagger UI - должен быть относительным путем от корня OpenAPI схемы
-# FastAPI автоматически добавит префикс API при построении OpenAPI схемы
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
 
 
 async def get_current_user_id(

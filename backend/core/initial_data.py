@@ -2,16 +2,16 @@
 Создание начальных данных при запуске приложения
 '''
 import contextlib
+
 from pydantic import EmailStr
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from database.base import get_async_session
 from crud.user import user_crud
-from schemas.user import UserCreate
+from database.base import get_async_session
 from models.user import UserRole
-
+from schemas.user import UserCreate
 
 get_async_session_context = contextlib.asynccontextmanager(get_async_session)
 
@@ -37,7 +37,6 @@ async def create_user(
         session: Опциональная сессия БД (если не указана, создается новая)
     '''
     if session:
-        # Используем переданную сессию
         existing_user = await user_crud.get_by_email(session, email)
         if existing_user:
             raise UserAlreadyExists(f'Пользователь с  email {email} уже есть')
@@ -56,10 +55,8 @@ async def create_user(
             )
             return user
         except IntegrityError:
-            # Обработка race condition - пользователь мог быть создан между проверкой и созданием
             raise UserAlreadyExists(f'Пользователь с  email {email} уже есть')
     else:
-        # Создаем новую сессию
         async with get_async_session_context() as session:
             existing_user = await user_crud.get_by_email(session, email)
             if existing_user:
@@ -79,7 +76,6 @@ async def create_user(
                 )
                 return user
             except IntegrityError:
-                # Обработка race condition
                 raise UserAlreadyExists(f'Пользователь с  email {email} уже есть')
 
 
@@ -98,4 +94,4 @@ async def create_first_superuser():
                 is_superuser=True
             )
         except UserAlreadyExists:
-            pass  # Пользователь уже существует, пропускаем
+            pass

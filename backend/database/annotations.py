@@ -1,14 +1,13 @@
 '''
 Кастомные типы данных для SQLAlchemy
 '''
-from datetime import datetime
 import uuid
+from datetime import datetime
 from typing import Annotated
 
-from sqlalchemy.types import TypeDecorator, CHAR
-from sqlalchemy.orm import mapped_column
 from sqlalchemy import String
-
+from sqlalchemy.orm import mapped_column
+from sqlalchemy.types import CHAR, TypeDecorator
 
 try:
     from sqlalchemy.dialects.postgresql import UUID as PostgresUUID

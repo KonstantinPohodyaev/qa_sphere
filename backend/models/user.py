@@ -2,17 +2,20 @@
 Модель User
 '''
 import uuid
-from typing import TYPE_CHECKING, List
 from enum import StrEnum
-from sqlalchemy import String, Boolean, Enum as SQLEnum
+from typing import TYPE_CHECKING, List
+
+from sqlalchemy import Boolean
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base import BaseModel
 from database.annotations import GUID
+from models.base import BaseModel
 
 if TYPE_CHECKING:
-    from models.pipeline_run import PipelineRun
     from models.pipeline import Pipeline
+    from models.pipeline_run import PipelineRun
 
 
 class UserRole(StrEnum):
@@ -43,8 +46,8 @@ class User(BaseModel):
     # Relationships
     pipelines: Mapped[List['Pipeline']] = relationship(
         'Pipeline',
-        back_populates='user',
-        cascade='all, delete-orphan'
+        secondary='pipeline_owners',
+        back_populates='owners'
     )
     pipeline_runs: Mapped[List['PipelineRun']] = relationship(
         'PipelineRun',

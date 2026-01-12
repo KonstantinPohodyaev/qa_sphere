@@ -1,6 +1,7 @@
 '''
 Конфигурация приложения
 '''
+
 from pydantic_settings import BaseSettings
 
 
@@ -27,7 +28,6 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = ['http://localhost:3000', 'http://localhost:8000']
     
-    # JWT (если будет использоваться)
     SECRET_KEY: str = 'your-secret-key-change-in-production'
     ALGORITHM: str = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
@@ -36,7 +36,6 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_EMAIL: str | None = None
     FIRST_SUPERUSER_PASSWORD: str | None = None
     
-    # Логирование SQL запросов (для разработки)
     SQL_ECHO: bool = False
     
     class Config:

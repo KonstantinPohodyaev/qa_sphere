@@ -2,13 +2,13 @@
 Базовый CRUD класс (асинхронный)
 '''
 import uuid
-from typing import Generic, TypeVar, Type, Optional
+from typing import Generic, Optional, Type, TypeVar
 
 from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from models.base import BaseModel
 

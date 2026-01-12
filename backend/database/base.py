@@ -1,7 +1,8 @@
 '''
 Базовые настройки базы данных (асинхронные)
 '''
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
 from sqlalchemy.orm import declarative_base
 
 from core.config import settings
@@ -9,7 +10,6 @@ from core.config import settings
 # Формирование async URL для PostgreSQL
 async_database_url = settings.DATABASE_URL
 
-# Создание асинхронного движка базы данных
 async_engine = create_async_engine(
     async_database_url,
     pool_pre_ping=True,  # Проверка соединения перед использованием

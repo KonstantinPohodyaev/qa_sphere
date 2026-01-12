@@ -3,10 +3,12 @@
 '''
 import uuid
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
 from enum import Enum as PyEnum
+from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import String, DateTime, Enum as SQLEnum, ForeignKey
+from sqlalchemy import DateTime
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.annotations import GUID
@@ -15,8 +17,8 @@ from models.base import BaseModel
 if TYPE_CHECKING:
     from models.pipeline import Pipeline
     from models.pipeline_version import PipelineVersion
-    from models.user import User
     from models.run_artifact import RunArtifact
+    from models.user import User
 
 
 class PipelineRunStatus(PyEnum):

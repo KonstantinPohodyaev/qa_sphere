@@ -4,9 +4,8 @@ Pydantic схемы для Pipeline
 import uuid
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict
 
-from schemas.user import UserRead
+from pydantic import BaseModel, ConfigDict
 
 
 class PipelineBase(BaseModel):
@@ -21,7 +20,7 @@ class PipelineBase(BaseModel):
 
 class PipelineCreate(PipelineBase):
     '''Схема для создания Pipeline'''
-    user_id: uuid.UUID
+    pass
 
 
 class PipelineUpdate(BaseModel):
@@ -31,27 +30,39 @@ class PipelineUpdate(BaseModel):
     description: Optional[str] = None
     executor_type: Optional[str] = None
     external_id: Optional[str] = None
-    user_id: Optional[uuid.UUID] = None
     is_active: Optional[bool] = None
+    owners: Optional[list[dict]] = None  # Список словарей с ключом 'id' для owner_id
 
 
 class PipelineInDB(PipelineBase):
     '''Схема Pipeline из базы данных'''
     id: uuid.UUID
-    user_id: uuid.UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
     
     model_config = ConfigDict(from_attributes=True)
 
 
-class PipelineWithUser(PipelineInDB):
-    '''Схема Pipeline с информацией о пользователе'''
-    user: UserRead
+class PipelineUserRead(BaseModel):
+    '''Схема пользователя для Pipeline'''
+    id: uuid.UUID
+    email: str
+    is_active: bool
+    role: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
     
     model_config = ConfigDict(from_attributes=True)
 
 
-class PipelineRead(PipelineWithUser):
+class PipelineRead(PipelineInDB):
     '''Схема Pipeline для ответа API'''
+    owners: list[PipelineUserRead] = []
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PipelineReadShort(PipelineRead):
+    '''Схема Pipeline для краткого ответа API'''
+    
     pass

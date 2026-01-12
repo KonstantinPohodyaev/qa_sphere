@@ -1,15 +1,15 @@
 '''
 Утилиты для работы с безопасностью (хеширование паролей и JWT токены)
 '''
+import uuid
 from datetime import datetime, timedelta
 from typing import Optional
-import uuid
+
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from core.config import settings
 
-# Контекст для хеширования паролей
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 

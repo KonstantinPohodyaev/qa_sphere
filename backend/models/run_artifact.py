@@ -1,13 +1,14 @@
 import uuid
 from enum import StrEnum
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, Enum as SQLEnum
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.base import BaseModel
 from database.annotations import GUID, not_null_unique_str
+from models.base import BaseModel
 
 if TYPE_CHECKING:
     from models.pipeline_run import PipelineRun

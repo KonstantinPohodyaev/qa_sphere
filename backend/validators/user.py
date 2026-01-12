@@ -3,13 +3,13 @@
 '''
 import uuid
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.base import get_async_session
-from crud.user import user_crud
-from models.user import User
 from core.security import verify_password
+from crud.user import user_crud
+from database.base import get_async_session
+from models.user import User
 
 
 async def validate_user_id(
@@ -22,6 +22,7 @@ async def validate_user_id(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f'Пользователя в UUID = {user_id} не существует'
         )
+    return user
 
 
 async def validate_user_email(
@@ -34,6 +35,7 @@ async def validate_user_email(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f'Пользователя с email = {email} не существует'
         )
+    return user
 
 
 async def validate_is_active(
