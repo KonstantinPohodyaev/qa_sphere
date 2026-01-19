@@ -3,7 +3,7 @@
 '''
 from fastapi import APIRouter
 
-from api.v1.endpoints import auth, pipelines, user, pipeline_version
+from api.v1.endpoints import auth, pipeline_version, pipelines, user
 
 api_router = APIRouter()
 

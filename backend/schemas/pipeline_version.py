@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class PipelineVersionBase(BaseModel):
@@ -32,6 +32,7 @@ class PipelineVersion(BaseModel):
 class PipelineVersionCreate(BaseModel):
     '''Схема для создания PipelineVersion'''
     version: str
+    pipeline_id: uuid.UUID
     schema: Optional[dict] = None
     description: Optional[str] = None
     is_active: bool = True
@@ -56,6 +57,29 @@ class PipelineVersionInDB(PipelineVersionBase):
         from_attributes = True
 
 
+class PipelineVersionPipeline(BaseModel):
+    '''Схема для пайплайна, принадлежащего определенной версии'''
+
+    id: uuid.UUID
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PipelineVersionPipelineRun(BaseModel):
+    '''Схема для вызовов пайплайна определенной версии'''
+
+    id: uuid.UUID
+    user_id: Optional[uuid.UUID] = None
+    started_at: Optional[datetime] = None
+    finished_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+
 class PipelineVersionRead(PipelineVersionInDB):
     '''Схема PipelineVersion для ответа API'''
-    pass
+    pipeline: PipelineVersionPipeline
+    runs: Optional[list[PipelineVersionPipelineRun]] = None
+

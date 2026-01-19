@@ -1,11 +1,13 @@
-from models.base import BaseModel
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Enum as SQLEnum, ForeignKey, UniqueConstraint
 import uuid
 from enum import StrEnum
-from database.annotations import not_null_unique_str, GUID, null_text
 from typing import Optional
-from sqlalchemy import Text
+
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from database.annotations import GUID, not_null_unique_str, null_text
+from models.base import BaseModel
 from models.enums.tag import TagType
 
 
@@ -19,6 +21,7 @@ class Tag(BaseModel):
 
 class TagLink(BaseModel):
     '''Модель связи тега с объектом'''
+
     __tablename__ = 'tag_links'
     __table_args__ = (
         UniqueConstraint(

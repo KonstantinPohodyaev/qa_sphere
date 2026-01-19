@@ -1,11 +1,15 @@
-from crud.base import CRUDBase
 import uuid
-from typing import override, Optional
-from models.pipeline_version import PipelineVersion
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional, override
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from schemas.pipeline_version import PipelineVersionCreate, PipelineVersionUpdate
+
+from crud.base import CRUDBase
+from models.pipeline_version import PipelineVersion
+from schemas.pipeline_version import (PipelineVersionCreate,
+                                      PipelineVersionUpdate)
+
 
 class PipelineVersionCRUD(CRUDBase[PipelineVersion, PipelineVersionCreate, PipelineVersionUpdate]):
     '''CRUD для PipelineVersion'''
@@ -49,5 +53,5 @@ class PipelineVersionCRUD(CRUDBase[PipelineVersion, PipelineVersionCreate, Pipel
             )
         ).scalar_one_or_none()
 
+
 pipeline_version_crud = PipelineVersionCRUD(PipelineVersion)
-    
