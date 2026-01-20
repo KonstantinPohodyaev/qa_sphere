@@ -4,7 +4,7 @@
 import uuid
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Boolean, ForeignKey, String, Text
+from sqlalchemy import Boolean, ForeignKey, String, Index, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -18,6 +18,15 @@ if TYPE_CHECKING:
 
 class PipelineVersion(BaseModel):
     '''Модель версии пайплайна'''
+
+    __table_args__ = (
+        Index(
+            "uq_active_pipeline_version",
+            "pipeline_id",
+            unique=True,
+            postgresql_where=text("is_active = true")
+        ),
+    )
     
     id: Mapped[uuid.UUID] = mapped_column(
         GUID(),

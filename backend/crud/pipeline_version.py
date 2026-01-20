@@ -54,4 +54,36 @@ class PipelineVersionCRUD(CRUDBase[PipelineVersion, PipelineVersionCreate, Pipel
         ).scalar_one_or_none()
 
 
+    async def get_all_by_pipeline_id(
+        self,
+        session: AsyncSession,
+        pipeline_id: uuid.UUID
+    ) -> list[PipelineVersion]:
+        '''Получить все PipelineVersion по ID пайплайна'''
+        return (
+            await session.execute(
+                select(PipelineVersion)
+                .where(PipelineVersion.pipeline_id == pipeline_id)
+                .options(selectinload(PipelineVersion.pipeline))
+                .options(selectinload(PipelineVersion.runs))
+            )
+        ).scalars().all()
+
+    async def get_active_by_pipeline_id(
+        self,
+        session: AsyncSession,
+        pipeline_id: uuid.UUID
+    ) -> Optional[PipelineVersion]:
+        '''Получить активную версию пайплайна по ID пайплайна'''
+        return (
+            await session.execute(
+                select(PipelineVersion)
+                .where(PipelineVersion.pipeline_id == pipeline_id)
+                .where(PipelineVersion.is_active == True)
+                .options(selectinload(PipelineVersion.pipeline))
+                .options(selectinload(PipelineVersion.runs))
+            )
+        ).scalar_one_or_none()
+
+
 pipeline_version_crud = PipelineVersionCRUD(PipelineVersion)

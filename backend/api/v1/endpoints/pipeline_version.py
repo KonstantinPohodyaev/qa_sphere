@@ -11,7 +11,9 @@ from schemas.pipeline_version import (PipelineVersionCreate,
 from validators.pipeline import validate_pipeline_id
 from validators.pipeline_version import validate_pipeline_version_id
 
+
 router = APIRouter()
+
 
 @router.get(
     '/',
@@ -104,3 +106,23 @@ async def delete_pipeline_version(
         pipeline_version_id, session
     )
     return await pipeline_version_crud.delete(session, db_pipeline_version)
+
+
+@router.get(
+    '/{pipeline_version_id}/active',
+    status_code=status.HTTP_200_OK,
+    response_model=PipelineVersionRead,
+    summary='Получить активную версию пайплайна',
+    description='Получить активную версию пайплайна'
+)
+async def get_active_pipeline_version(
+    pipeline_version_id: uuid.UUID,
+    session: AsyncSession = Depends(get_async_session)
+):
+    '''Получить активную версию пайплайна'''
+
+    await validate_pipeline_version_id(pipeline_version_id, session)
+    return await pipeline_version_crud.get_active_by_pipeline_id(
+        session,
+        pipeline_version_id
+    )

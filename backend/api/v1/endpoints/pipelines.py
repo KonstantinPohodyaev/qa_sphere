@@ -10,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from crud.pipeline import pipeline_crud
+from crud.pipeline_version import pipeline_version_crud
 from database.base import get_async_session
 from models.pipeline import Pipeline
 from schemas.pipeline import PipelineCreate, PipelineRead, PipelineUpdate
+from schemas.pipeline_version import PipelineVersionRead
 from validators.pipeline import (validate_pipeline_code, validate_pipeline_id,
                                  validate_pipeline_name)
 from validators.user import validate_user_id
@@ -165,6 +167,25 @@ async def delete_pipeline(
 
     await validate_pipeline_id(pipeline_id, session)
     return await pipeline_crud.delete_by_id(
+        session,
+        pipeline_id
+    )
+
+@router.get(
+    '/{pipeline_id}/versions',
+    status_code=status.HTTP_200_OK,
+    response_model=list[PipelineVersionRead],
+    summary='Получить список версий пайплайна',
+    description='Получить список версий пайплайна'
+)
+async def get_pipeline_versions(
+    pipeline_id: uuid.UUID,
+    session: AsyncSession = Depends(get_async_session)
+):
+    '''Получить список версий пайплайна'''
+
+    await validate_pipeline_id(pipeline_id, session)
+    return await pipeline_version_crud.get_all_by_pipeline_id(
         session,
         pipeline_id
     )
