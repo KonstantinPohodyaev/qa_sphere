@@ -42,9 +42,7 @@ async def login(
     Для JSON запросов используйте /login/json
     '''
 
-    user = await user_crud.get_by_email(session, form_data.username)
-    
-    await validate_user_email(form_data.username, session)
+    user = await validate_user_email(form_data.username, session)
     await validate_is_active(user)
     await validate_password(form_data.password, user)
 
@@ -71,9 +69,7 @@ async def login_json(
     '''
     Войти в систему и получить JWT токен (используя JSON body)
     '''
-    user = await user_crud.get_by_email(session, login_data.email)
-    
-    await validate_user_email(login_data.email, session)
+    user = await validate_user_email(login_data.email, session)
     await validate_is_active(user)
     await validate_password(login_data.password, user)
 

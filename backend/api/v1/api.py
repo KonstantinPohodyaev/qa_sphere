@@ -3,7 +3,7 @@
 '''
 from fastapi import APIRouter
 
-from api.v1.endpoints import auth, pipeline_version, pipelines, user
+from api.v1.endpoints import auth, pipeline_version, pipelines, user, tag
 
 api_router = APIRouter()
 
@@ -19,4 +19,7 @@ api_router.include_router(
 )
 api_router.include_router(
     pipeline_version.router, prefix='/pipeline-versions', tags=['pipeline-versions']
+)
+api_router.include_router(
+    tag.router, prefix='/tags', tags=['tags']
 )

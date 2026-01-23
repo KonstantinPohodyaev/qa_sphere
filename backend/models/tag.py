@@ -1,6 +1,5 @@
 import uuid
-from enum import StrEnum
-from typing import Optional
+from typing import List
 
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
@@ -17,6 +16,9 @@ class Tag(BaseModel):
     name: Mapped[not_null_unique_str]
     type: Mapped[TagType] = mapped_column(SQLEnum(TagType), nullable=False)
     description: Mapped[null_text]
+
+    # Relationships
+    links: Mapped[List['TagLink']] = relationship('TagLink', back_populates='tag')
 
 
 class TagLink(BaseModel):
@@ -36,6 +38,6 @@ class TagLink(BaseModel):
         ForeignKey('tags.id'), nullable=False
     )
     entity_type: Mapped[str] = mapped_column(String(255), nullable=False)
-    enntity_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
+    entity_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
 
     tag: Mapped['Tag'] = relationship('Tag', back_populates='links')
